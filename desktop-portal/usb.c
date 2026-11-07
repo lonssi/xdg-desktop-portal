@@ -661,12 +661,18 @@ gudev_client_uevent_cb (GUdevClient *client,
   else
     {
       syspath = g_udev_device_get_sysfs_path (device);
+      if (syspath == NULL)
+        return;
 
-      g_assert (syspath != NULL);
       id = g_strdup (g_hash_table_lookup (self->syspaths_to_ids, syspath));
+      if (id == NULL)
+        {
+          g_debug ("Ignoring %s event for unknown USB device at %s", action, syspath);
+          return;
+        }
     }
 
-  g_assert (id != NULL);
+  /* no g_assert (id != NULL); here */
 
   /* Send event to all sessions that are allowed to handle it */
   g_hash_table_iter_init (&iter, self->sessions);
